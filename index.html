@@ -131,6 +131,14 @@
             box-shadow: 0 5px 15px rgba(72, 187, 120, 0.4);
         }
 
+        .card-button.warning {
+            background: linear-gradient(135deg, #ed8936 0%, #dd7724 100%);
+        }
+
+        .card-button.warning:hover {
+            box-shadow: 0 5px 15px rgba(237, 137, 54, 0.4);
+        }
+
         .student-card {
             border-top: 5px solid #48bb78;
         }
@@ -303,8 +311,8 @@
                 <div class="card-icon">✏️</div>
                 <h2>학생용</h2>
                 <p>나의 마음 날씨를 기록하고<br>선생님께 전달해요</p>
-                <a href="#" class="card-button secondary" onclick="event.preventDefault(); goToNewDiary()">새로 작성하기</a>
-                <a href="#" class="card-button" onclick="event.preventDefault(); goToStudent()">이어서 쓰기</a>
+                <a href="#" class="card-button warning" onclick="event.preventDefault(); goToNewDiary()">✨ 새로 작성하기</a>
+                <a href="#" class="card-button" onclick="event.preventDefault(); goToStudent()">📝 이어서 쓰기</a>
             </div>
 
             <!-- 교사용 카드 -->
@@ -312,13 +320,16 @@
                 <div class="card-icon">📊</div>
                 <h2>교사용</h2>
                 <p>학생들의 마음 날씨를<br>한눈에 확인해요</p>
-                <a href="#" class="card-button" onclick="event.preventDefault(); goToTeacher()">대시보드 보기</a>
+                <a href="#" class="card-button" onclick="event.preventDefault(); goToTeacher()">📊 대시보드 보기</a>
             </div>
         </div>
 
         <div class="info-section">
             <h3>🎯 주요 기능</h3>
             <div class="features">
+                <div class="feature">
+                    <span>✨ 새로 작성하기</span>
+                </div>
                 <div class="feature">
                     <span>🌤️ 7가지 감정 날씨</span>
                 </div>
@@ -334,15 +345,13 @@
                 <div class="feature">
                     <span>🔒 안전한 보관</span>
                 </div>
-                <div class="feature">
-                    <span>✨ 새로 작성하기</span>
-                </div>
             </div>
         </div>
 
         <footer class="footer">
             <p>초등 3학년을 위한 감정 일기 앱</p>
             <p>© 2025 마음날씨 일기</p>
+            <p><small>💡 팁: Ctrl+N을 누르면 새로 작성하기, Ctrl+Enter를 누르면 이어서 작성하기</small></p>
         </footer>
     </div>
 
@@ -350,10 +359,9 @@
         // Google Apps Script URL
         const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwswLYBXIwTvryhocMiR0aGXvw2TIIiaxXl4wXzq4W0oqXemy62IQxkpCVrfhOyuEob/exec';
 
-        // 새로 작성하기 (캐시 초기화)
+        // 새로 작성하기 (새로 작성하기 파라미터 추가)
         function goToNewDiary() {
             showLoading(event.target);
-            // 타임스탬프를 추가해서 캐시 방지
             const timestamp = new Date().getTime();
             window.location.href = APPS_SCRIPT_URL + '?new=true&t=' + timestamp;
         }
