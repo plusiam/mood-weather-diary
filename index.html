@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🌈 마음날씨 일기 - 포털</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            width: 100%;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            font-size: 3em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .header p {
+            font-size: 1.3em;
+            opacity: 0.9;
+        }
+
+        .cards-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            transform: translateX(-100%);
+            transition: transform 0.3s ease;
+        }
+
+        .card:hover::before {
+            transform: translateX(0);
+        }
+
+        .card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+        }
+
+        .card-icon {
+            font-size: 4em;
+            margin-bottom: 20px;
+        }
+
+        .card h2 {
+            font-size: 1.5em;
+            color: #2d3748;
+            margin-bottom: 15px;
+        }
+
+        .card p {
+            color: #718096;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+
+        .card-button {
+            display: inline-block;
+            padding: 12px 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-decoration: none;
+            border-radius: 25px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .card-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .student-card {
+            border-top: 5px solid #48bb78;
+        }
+
+        .teacher-card {
+            border-top: 5px solid #4299e1;
+        }
+
+        .info-section {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            color: white;
+            text-align: center;
+        }
+
+        .info-section h3 {
+            font-size: 1.8em;
+            margin-bottom: 20px;
+        }
+
+        .features {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .feature {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 15px 25px;
+            border-radius: 15px;
+            backdrop-filter: blur(5px);
+        }
+
+        .footer {
+            text-align: center;
+            color: white;
+            margin-top: 40px;
+            opacity: 0.8;
+        }
+
+        /* 반응형 디자인 */
+        @media (max-width: 600px) {
+            .header h1 {
+                font-size: 2em;
+            }
+
+            .cards-container {
+                grid-template-columns: 1fr;
+            }
+
+            .features {
+                flex-direction: column;
+            }
+        }
+
+        /* 로딩 애니메이션 */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* 이모지 애니메이션 */
+        .emoji-rain {
+            position: fixed;
+            top: -50px;
+            animation: rain 10s linear infinite;
+            pointer-events: none;
+            z-index: -1;
+            font-size: 2em;
+        }
+
+        @keyframes rain {
+            to {
+                transform: translateY(calc(100vh + 50px));
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 배경 이모지 애니메이션 -->
+    <div class="emoji-rain" style="left: 10%;">🌈</div>
+    <div class="emoji-rain" style="left: 30%; animation-delay: 2s;">☀️</div>
+    <div class="emoji-rain" style="left: 50%; animation-delay: 4s;">⛅</div>
+    <div class="emoji-rain" style="left: 70%; animation-delay: 6s;">🌧️</div>
+    <div class="emoji-rain" style="left: 90%; animation-delay: 8s;">⚡</div>
+
+    <div class="container">
+        <header class="header">
+            <h1>🌈 마음날씨 일기</h1>
+            <p>오늘의 마음은 어떤 날씨인가요?</p>
+        </header>
+
+        <div class="cards-container">
+            <!-- 학생용 카드 -->
+            <div class="card student-card" onclick="goToStudent()">
+                <div class="card-icon">✏️</div>
+                <h2>학생용</h2>
+                <p>나의 마음 날씨를 기록하고<br>선생님께 전달해요</p>
+                <a href="#" class="card-button" onclick="event.preventDefault(); goToStudent()">일기 쓰러 가기</a>
+            </div>
+
+            <!-- 교사용 카드 -->
+            <div class="card teacher-card" onclick="goToTeacher()">
+                <div class="card-icon">📊</div>
+                <h2>교사용</h2>
+                <p>학생들의 마음 날씨를<br>한눈에 확인해요</p>
+                <a href="#" class="card-button" onclick="event.preventDefault(); goToTeacher()">대시보드 보기</a>
+            </div>
+        </div>
+
+        <div class="info-section">
+            <h3>🎯 주요 기능</h3>
+            <div class="features">
+                <div class="feature">
+                    <span>🌤️ 7가지 감정 날씨</span>
+                </div>
+                <div class="feature">
+                    <span>📸 이미지 저장</span>
+                </div>
+                <div class="feature">
+                    <span>📤 선생님께 전송</span>
+                </div>
+                <div class="feature">
+                    <span>📊 감정 통계</span>
+                </div>
+                <div class="feature">
+                    <span>🔒 안전한 보관</span>
+                </div>
+            </div>
+        </div>
+
+        <footer class="footer">
+            <p>초등 3학년을 위한 감정 일기 앱</p>
+            <p>© 2025 마음날씨 일기</p>
+        </footer>
+    </div>
+
+    <script>
+        // Google Apps Script URL
+        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwswLYBXIwTvryhocMiR0aGXvw2TIIiaxXl4wXzq4W0oqXemy62IQxkpCVrfhOyuEob/exec';
+
+        // 학생용 페이지로 이동
+        function goToStudent() {
+            // 로딩 표시
+            event.target.innerHTML = '<span class="loading"></span>';
+            window.location.href = APPS_SCRIPT_URL;
+        }
+
+        // 교사용 페이지로 이동
+        function goToTeacher() {
+            // 로딩 표시
+            event.target.innerHTML = '<span class="loading"></span>';
+            window.location.href = APPS_SCRIPT_URL + '?page=teacher';
+        }
+
+        // 카드 호버 효과
+        document.querySelectorAll('.card').forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-10px) scale(1.02)';
+            });
+
+            card.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0) scale(1)';
+            });
+        });
+
+        // 페이지 로드 애니메이션
+        window.addEventListener('load', function() {
+            document.querySelectorAll('.card').forEach((card, index) => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(20px)';
+
+                setTimeout(() => {
+                    card.style.transition = 'all 0.5s ease';
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                }, index * 200);
+            });
+        });
+    </script>
+</body>
+</html>
