@@ -4,7 +4,7 @@
  */
 
 // ⚙️ 설정
-const SPREADSHEET_ID = 'YOUR_SPREADSHEET_ID_HERE'; // Google Sheets ID 입력 필요
+const SPREADSHEET_ID = '1aQ5AXW-SjJT5LWGfSAbNXCYAyZHhYvzuuv5r11YkSGw'; // Google Sheets ID 입력 필요
 const TEACHER_PASSWORD = 'teacher2025'; // 교사 접근 비밀번호
 
 /**
