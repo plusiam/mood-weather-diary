@@ -5,7 +5,7 @@
 
 // ⚙️ 설정
 const SPREADSHEET_ID = '1aQ5AXW-SjJT5LWGfSAbNXCYAyZHhYvzuuv5r11YkSGw'; // Google Sheets ID 입력 필요
-const TEACHER_PASSWORD = 'teacher2025'; // 교사 접근 비밀번호
+const TEACHER_PASSWORD = 'kth2525..'; // 교사 접근 비밀번호
 
 /**
  * 내 일기 가져오기 (최종 수정된 버전 - 학반 반영)
