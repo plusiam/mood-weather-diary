@@ -123,52 +123,6 @@ h1 {
     color: #718096;
 }
 
-/* 메인 액션 버튼 (새로 추가) */
-.main-actions {
-    margin-bottom: 25px;
-}
-
-.btn-large {
-    width: 100%;
-    padding: 25px 30px;
-    font-size: 1.1em;
-    background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
-    border: none;
-    border-radius: 15px;
-    color: white;
-    cursor: pointer;
-    transition: all 0.3s;
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    box-shadow: 0 8px 25px rgba(72, 187, 120, 0.3);
-}
-
-.btn-large:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 12px 35px rgba(72, 187, 120, 0.4);
-}
-
-.btn-content {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    text-align: left;
-}
-
-.btn-title {
-    font-size: 1.2em;
-    font-weight: 700;
-    margin-bottom: 4px;
-}
-
-.btn-desc {
-    font-size: 0.9em;
-    opacity: 0.9;
-    font-weight: 400;
-}
-
-/* 기본 버튼 그룹 */
 .button-group {
     display: flex;
     flex-direction: column;
@@ -199,6 +153,11 @@ h1 {
     transform: translateY(0);
 }
 
+.btn:focus {
+    outline: 2px solid #667eea;
+    outline-offset: 2px;
+}
+
 .btn-primary {
     background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
 }
@@ -211,149 +170,8 @@ h1 {
     background: linear-gradient(135deg, #ed8936 0%, #dd6b20 100%);
 }
 
-.btn-success {
-    background: linear-gradient(135deg, #9f7aea 0%, #805ad5 100%);
-}
-
-.btn-outline {
-    background: transparent;
-    border: 2px solid #667eea;
-    color: #667eea;
-}
-
-.btn-outline:hover {
-    background: #667eea;
-    color: white;
-}
-
 .btn .icon {
     font-size: 1.5em;
-}
-
-/* 최근 활동 카드 (새로 추가) */
-.recent-activity {
-    background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
-    border-left: 4px solid #667eea;
-}
-
-.recent-activity h3 {
-    color: #2d3748;
-    margin-bottom: 15px;
-    font-size: 1.1em;
-}
-
-.activity-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 12px 0;
-    border-bottom: 1px solid #e2e8f0;
-    margin-bottom: 15px;
-}
-
-.activity-item:last-child {
-    border-bottom: none;
-    margin-bottom: 0;
-}
-
-.activity-date {
-    font-weight: 600;
-    color: #667eea;
-    font-size: 0.9em;
-}
-
-.activity-text {
-    color: #4a5568;
-    font-size: 0.95em;
-}
-
-/* 빠른 접근 메뉴 (새로 추가) */
-.quick-menu {
-    background: linear-gradient(135deg, #fff5f5 0%, #fed7e2 100%);
-}
-
-.quick-menu h3 {
-    color: #2d3748;
-    margin-bottom: 20px;
-    font-size: 1.1em;
-}
-
-.quick-menu-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 15px;
-}
-
-.quick-btn {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 20px 15px;
-    background: white;
-    border: 2px solid #e2e8f0;
-    border-radius: 12px;
-    cursor: pointer;
-    transition: all 0.3s;
-    text-decoration: none;
-    color: #4a5568;
-    min-height: 80px;
-}
-
-.quick-btn:hover {
-    border-color: #667eea;
-    background: #f7fafc;
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.2);
-}
-
-.quick-icon {
-    font-size: 1.8em;
-    margin-bottom: 8px;
-}
-
-.quick-text {
-    font-size: 0.85em;
-    font-weight: 600;
-    text-align: center;
-}
-
-/* 토스트 알림 (새로 추가) */
-.toast {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    padding: 15px 25px;
-    border-radius: 10px;
-    color: white;
-    font-weight: 600;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-    transform: translateX(100%);
-    opacity: 0;
-    transition: all 0.3s ease;
-    z-index: 1000;
-    max-width: 300px;
-}
-
-.toast-show {
-    transform: translateX(0);
-    opacity: 1;
-}
-
-.toast-success {
-    background: linear-gradient(135deg, #48bb78, #38a169);
-}
-
-.toast-error {
-    background: linear-gradient(135deg, #f56565, #e53e3e);
-}
-
-.toast-warning {
-    background: linear-gradient(135deg, #ed8936, #dd6b20);
-}
-
-.toast-info {
-    background: linear-gradient(135deg, #4299e1, #3182ce);
 }
 
 /* 로딩 상태 */
@@ -392,41 +210,21 @@ footer {
     color: white;
 }
 
+.teacher-link:focus {
+    outline: 2px solid white;
+    outline-offset: 2px;
+}
+
 .copyright {
     color: rgba(255, 255, 255, 0.7);
     margin-top: 20px;
     font-size: 0.85em;
 }
 
-/* 접근성 개선 */
-.btn:focus,
-.quick-btn:focus,
-input:focus {
-    outline: 2px solid #667eea;
-    outline-offset: 2px;
-}
-
-/* 애니메이션 효과 */
-.card {
-    animation: slideUp 0.5s ease-out;
-}
-
-@keyframes slideUp {
-    from {
-        opacity: 0;
-        transform: translateY(30px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
 /* 반응형 디자인 */
 @media (max-width: 480px) {
     .container {
         max-width: 100%;
-        padding: 0 10px;
     }
 
     h1 {
@@ -435,58 +233,48 @@ input:focus {
 
     .card {
         padding: 30px 20px;
-        margin-bottom: 15px;
     }
 
     .weather-icon {
         font-size: 2.5em;
-        margin: 0 5px;
     }
 
-    .btn-large {
-        padding: 20px 25px;
-        font-size: 1em;
-    }
-
-    .quick-menu-grid {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 10px;
-    }
-
-    .quick-btn {
-        padding: 15px 10px;
-        min-height: 70px;
-    }
-
-    .quick-icon {
-        font-size: 1.5em;
-    }
-
-    .quick-text {
-        font-size: 0.8em;
-    }
-
-    .toast {
-        top: 10px;
-        right: 10px;
-        left: 10px;
-        max-width: none;
+    .btn {
+        padding: 16px 20px;
+        font-size: 15px;
     }
 }
 
 @media (max-width: 360px) {
-    .quick-menu-grid {
-        grid-template-columns: 1fr;
+    .card {
+        padding: 25px 15px;
     }
     
-    .activity-item {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 5px;
+    .btn {
+        padding: 14px 18px;
     }
 }
 
-/* 다크모드 지원 (미래 확장용) */
+/* 접근성 개선 */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+@media (prefers-contrast: high) {
+    .btn {
+        border: 2px solid currentColor;
+    }
+    
+    .card {
+        border: 2px solid #333;
+    }
+}
+
+/* 다크모드 지원 */
 @media (prefers-color-scheme: dark) {
     .card {
         background: rgba(45, 55, 72, 0.95);
@@ -514,7 +302,7 @@ input:focus {
         background: white;
     }
     
-    .btn, .quick-menu, .toast {
+    .btn, .weather-animation {
         display: none !important;
     }
     
@@ -522,24 +310,8 @@ input:focus {
         box-shadow: none;
         border: 1px solid #ddd;
     }
-}
-
-/* 고대비 모드 지원 */
-@media (prefers-contrast: high) {
-    .btn {
-        border: 2px solid currentColor;
-    }
     
-    .card {
-        border: 2px solid #333;
-    }
-}
-
-/* 애니메이션 감소 설정 */
-@media (prefers-reduced-motion: reduce) {
-    * {
-        animation-duration: 0.01ms !important;
-        animation-iteration-count: 1 !important;
-        transition-duration: 0.01ms !important;
+    header {
+        color: #333;
     }
 }
