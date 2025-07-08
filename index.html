@@ -332,6 +332,17 @@
                 transform: translateY(0);
             }
         }
+
+        /* 학반 안내 */
+        .input-helper {
+            background: rgba(255, 193, 7, 0.1);
+            border: 1px solid rgba(255, 193, 7, 0.3);
+            border-radius: 8px;
+            padding: 8px 12px;
+            margin-top: 8px;
+            font-size: 0.85em;
+            color: #856404;
+        }
     </style>
 </head>
 <body>
@@ -357,6 +368,21 @@
             <div class="main-card-icon">📝</div>
             <h2>나의 마음 일기</h2>
             <p>마음 속 날씨를 기록하고<br>선생님께 전달해요</p>
+
+            <!-- 간단한 입력 폼 추가 -->
+            <div style="margin-bottom: 25px; text-align: left;">
+                <div style="margin-bottom: 15px;">
+                    <label style="display: block; margin-bottom: 5px; font-weight: 500; color: #2d3748;">이름</label>
+                    <input type="text" id="quickName" placeholder="홍길동" style="width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 16px;">
+                </div>
+                <div style="margin-bottom: 15px;">
+                    <label style="display: block; margin-bottom: 5px; font-weight: 500; color: #2d3748;">학반</label>
+                    <input type="text" id="quickClass" placeholder="3-1" style="width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 16px;">
+                    <div class="input-helper">
+                        💡 학반을 입력해주세요 (예: 3-1, 4-2)
+                    </div>
+                </div>
+            </div>
 
             <div class="action-buttons">
                 <button class="main-button btn-warning" onclick="goToNewDiary()">
@@ -413,23 +439,48 @@
         // ✅ Google Apps Script 웹앱 배포 URL 연결됨
         const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwswLYBXIwTvryhocMiR0aGXvw2TIIiaxXl4wXzq4W0oqXemy62IQxkpCVrfhOyuEob/exec';
 
+        // 입력값 가져오기 (학반 반영)
+        function getStudentInfo() {
+            const name = document.getElementById('quickName').value.trim();
+            const studentClass = document.getElementById('quickClass').value.trim(); // 학반
+            
+            if (!name || !studentClass) {
+                alert('이름과 학반을 입력해주세요!\n\n예시:\n이름: 홍길동\n학반: 3-1');
+                return null;
+            }
+            
+            return { name, studentClass };
+        }
+
         // 새로 작성하기
         function goToNewDiary() {
+            const info = getStudentInfo();
+            if (!info) return;
+            
             showLoading(event.target);
             const timestamp = new Date().getTime();
-            window.location.href = APPS_SCRIPT_URL + '?page=index&new=true&t=' + timestamp;
+            window.location.href = APPS_SCRIPT_URL + 
+                `?page=index&new=true&t=${timestamp}&name=${encodeURIComponent(info.name)}&class=${encodeURIComponent(info.studentClass)}`;
         }
 
         // 학생용 페이지로 이동 (기존 작성 이어서)
         function goToStudent() {
+            const info = getStudentInfo();
+            if (!info) return;
+            
             showLoading(event.target);
-            window.location.href = APPS_SCRIPT_URL + '?page=index';
+            window.location.href = APPS_SCRIPT_URL + 
+                `?page=index&name=${encodeURIComponent(info.name)}&class=${encodeURIComponent(info.studentClass)}`;
         }
 
         // 내 일기 보기 (바로 내 일기 목록 표시)
         function goToMyDiaries() {
+            const info = getStudentInfo();
+            if (!info) return;
+            
             showLoading(event.target);
-            window.location.href = APPS_SCRIPT_URL + '?page=index&view=mydiaries';
+            window.location.href = APPS_SCRIPT_URL + 
+                `?page=index&view=mydiaries&name=${encodeURIComponent(info.name)}&class=${encodeURIComponent(info.studentClass)}`;
         }
 
         // 교사용 페이지로 이동 (비밀번호 프롬프트)
@@ -461,6 +512,21 @@
             document.querySelectorAll('.fade-in').forEach((element, index) => {
                 element.style.animationDelay = (index * 0.2) + 's';
             });
+            
+            // 저장된 정보 불러오기
+            const savedName = localStorage.getItem('studentName');
+            const savedClass = localStorage.getItem('studentClass');
+            if (savedName) document.getElementById('quickName').value = savedName;
+            if (savedClass) document.getElementById('quickClass').value = savedClass;
+        });
+
+        // 입력값 저장
+        document.getElementById('quickName').addEventListener('input', function() {
+            localStorage.setItem('studentName', this.value);
+        });
+        
+        document.getElementById('quickClass').addEventListener('input', function() {
+            localStorage.setItem('studentClass', this.value);
         });
 
         // 키보드 단축키
