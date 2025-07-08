@@ -49,21 +49,6 @@
             opacity: 0.9;
         }
 
-        /* 설정 알림 */
-        .setup-notice {
-            background: rgba(255, 193, 7, 0.9);
-            color: #856404;
-            padding: 15px 20px;
-            border-radius: 15px;
-            margin-bottom: 30px;
-            text-align: center;
-            font-weight: 500;
-        }
-
-        .setup-notice strong {
-            color: #6c4c00;
-        }
-
         /* 메인 학생용 카드 */
         .main-card {
             background: white;
@@ -323,9 +308,38 @@
                 transform: translateY(0);
             }
         }
+
+        /* 연결 상태 표시 */
+        .connection-status {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(72, 187, 120, 0.9);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: 500;
+            z-index: 1000;
+            opacity: 0;
+            transform: translateY(-20px);
+            animation: slideDown 0.5s ease forwards 1s;
+        }
+
+        @keyframes slideDown {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
     </style>
 </head>
 <body>
+    <!-- 연결 상태 표시 -->
+    <div class="connection-status">
+        ✅ Google Apps Script 연결됨
+    </div>
+
     <!-- 배경 이모지 애니메이션 -->
     <div class="emoji-rain" style="left: 15%;">🌈</div>
     <div class="emoji-rain" style="left: 35%; animation-delay: 3s;">☀️</div>
@@ -337,11 +351,6 @@
             <h1>🌈 마음날씨 일기</h1>
             <p>오늘의 마음은 어떤 날씨인가요?</p>
         </header>
-
-        <!-- 설정 필요 알림 -->
-        <div class="setup-notice fade-in">
-            ⚠️ <strong>설정 필요:</strong> Google Apps Script 웹앱 배포 URL을 설정해주세요!
-        </div>
 
         <!-- 메인 학생용 카드 -->
         <div class="main-card fade-in">
@@ -401,18 +410,11 @@
     </div>
 
     <script>
-        // ⚠️ TODO: Google Apps Script 웹앱 배포 URL로 변경 필요!
-        // 예시: 'https://script.google.com/macros/s/AKfyc.../exec'
-        const APPS_SCRIPT_URL = 'YOUR_GOOGLE_APPS_SCRIPT_URL_HERE';
-
-        // 설정 확인
-        if (APPS_SCRIPT_URL === 'YOUR_GOOGLE_APPS_SCRIPT_URL_HERE') {
-            console.warn('⚠️ Google Apps Script URL이 설정되지 않았습니다!');
-        }
+        // ✅ Google Apps Script 웹앱 배포 URL 연결됨
+        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwswLYBXIwTvryhocMiR0aGXvw2TIIiaxXl4wXzq4W0oqXemy62IQxkpCVrfhOyuEob/exec';
 
         // 새로 작성하기
         function goToNewDiary() {
-            if (!checkConfiguration()) return;
             showLoading(event.target);
             const timestamp = new Date().getTime();
             window.location.href = APPS_SCRIPT_URL + '?page=index&new=true&t=' + timestamp;
@@ -420,35 +422,23 @@
 
         // 학생용 페이지로 이동 (기존 작성 이어서)
         function goToStudent() {
-            if (!checkConfiguration()) return;
             showLoading(event.target);
             window.location.href = APPS_SCRIPT_URL + '?page=index';
         }
 
         // 내 일기 보기 (바로 내 일기 목록 표시)
         function goToMyDiaries() {
-            if (!checkConfiguration()) return;
             showLoading(event.target);
             window.location.href = APPS_SCRIPT_URL + '?page=index&view=mydiaries';
         }
 
         // 교사용 페이지로 이동 (비밀번호 프롬프트)
         function goToTeacher() {
-            if (!checkConfiguration()) return;
             const password = prompt('교사용 접근 코드를 입력하세요:');
             if (password) {
                 showLoading(event.target);
                 window.location.href = APPS_SCRIPT_URL + '?page=teacher&password=' + encodeURIComponent(password);
             }
-        }
-
-        // 설정 확인
-        function checkConfiguration() {
-            if (APPS_SCRIPT_URL === 'YOUR_GOOGLE_APPS_SCRIPT_URL_HERE') {
-                alert('⚠️ Google Apps Script 웹앱 배포가 필요합니다!\n\n1. 구글 앱스 스크립트에서 "배포" → "새 배포"\n2. "웹 앱" 선택 후 배포\n3. 받은 URL을 코드에 설정');
-                return false;
-            }
-            return true;
         }
 
         // 로딩 표시 함수
@@ -492,6 +482,10 @@
                 }
             }
         });
+
+        // 연결 테스트 (optional)
+        console.log('🌈 마음날씨 일기 - Google Apps Script 연결됨');
+        console.log('📍 배포 URL:', APPS_SCRIPT_URL);
     </script>
 </body>
 </html>
