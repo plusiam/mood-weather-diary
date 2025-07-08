@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+  <html lang="ko">
+  <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>마음날씨일기</title>
+      <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+      <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+      <div class="container">
+          <div class="weather-animation">
+              <span class="weather-icon">🌤️</span>
+              <span class="weather-icon">🌈</span>
+              <span class="weather-icon">☁️</span>
+          </div>
+
+          <header>
+              <h1>마음날씨일기</h1>
+              <p class="subtitle">오늘의 마음은 어떤 날씨인가요?</p>
+          </header>
+
+          <main class="card">
+              <div class="input-section">
+                  <div class="input-group">
+                      <label for="studentName">이름</label>
+                      <input type="text" id="studentName" placeholder="홍길동">
+                  </div>
+                  <div class="input-group">
+                      <label for="studentClass">학반</label>
+                      <input type="text" id="studentClass" placeholder="3-1">
+                      <small class="helper-text">예: 3-1, 4-2, 5학년 3반</small>
+                  </div>
+              </div>
+
+              <div class="button-group">
+                  <button class="btn btn-primary" onclick="goToDiary('write')">
+                      <span class="icon">📝</span>
+                      <span>일기 쓰기</span>
+                  </button>
+                  <button class="btn btn-secondary" onclick="goToDiary('view')">
+                      <span class="icon">📚</span>
+                      <span>내 일기 보기</span>
+                  </button>
+                  <button class="btn btn-info" onclick="checkStatus()">
+                      <span class="icon">✅</span>
+                      <span>오늘 작성 확인</span>
+                  </button>
+              </div>
+          </main>
+
+          <footer>
+              <a href="#" class="teacher-link" onclick="goToTeacher()">👩‍🏫 선생님 페이지</a>
+              <p class="copyright">© 2025 마음날씨일기</p>
+          </footer>
+      </div>
+
+      <script src="app.js"></script>
+  </body>
+  </html>
