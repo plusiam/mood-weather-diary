@@ -1,5 +1,5 @@
 // Google Apps Script 배포 URL (배포 후 이 부분을 실제 URL로 교체하세요!)
-  const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/YOUR_DEPLOYMENT_ID/exec';
+  const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwswLYBXIwTvryhocMiR0aGXvw2TIIiaxXl4wXzq4W0oqXemy62IQxkpCVrfhOyuEob/exec';
 
   // 페이지 로드 시 저장된 정보 복원
   window.addEventListener('load', function() {
