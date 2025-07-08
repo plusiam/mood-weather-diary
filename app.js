@@ -1,4 +1,4 @@
-// Google Apps Script 배포 URL (배포 후 이 부분을 실제 URL로 교체하세요!)
+// Google Apps Script 배포 URL
   const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwswLYBXIwTvryhocMiR0aGXvw2TIIiaxXl4wXzq4W0oqXemy62IQxkpCVrfhOyuEob/exec';
 
   // 페이지 로드 시 저장된 정보 복원
@@ -29,34 +29,42 @@
           return null;
       }
 
-      // 세션 스토리지에 저장 (페이지 이동 시 사용)
-      sessionStorage.setItem('studentName', name);
-      sessionStorage.setItem('studentClass', studentClass);
-
       return { name, studentClass };
   }
 
-  // 일기 페이지로 이동
+  // 일기 페이지로 이동 (수정된 부분)
   function goToDiary(mode) {
       const info = getStudentInfo();
       if (!info) return;
 
       showLoading(event.target);
 
-      if (mode === 'write') {
-          window.location.href = `${APPS_SCRIPT_URL}?page=index&new=true`;
-      } else {
-          window.location.href = `${APPS_SCRIPT_URL}?page=index&view=true`;
-      }
+      // URL 파라미터로 학생 정보 전달
+      const params = new URLSearchParams({
+          page: 'index',
+          mode: mode,
+          name: info.name,
+          studentClass: info.studentClass
+      });
+
+      window.location.href = `${APPS_SCRIPT_URL}?${params.toString()}`;
   }
 
-  // 오늘 작성 확인
+  // 오늘 작성 확인 (수정된 부분)
   function checkStatus() {
       const info = getStudentInfo();
       if (!info) return;
 
       showLoading(event.target);
-      window.location.href = `${APPS_SCRIPT_URL}?page=index&status=true`;
+
+      const params = new URLSearchParams({
+          page: 'index',
+          mode: 'status',
+          name: info.name,
+          studentClass: info.studentClass
+      });
+
+      window.location.href = `${APPS_SCRIPT_URL}?${params.toString()}`;
   }
 
   // 교사 페이지로 이동
