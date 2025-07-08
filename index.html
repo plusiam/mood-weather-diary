@@ -39,19 +39,13 @@
                 </div>
             </div>
 
-            <!-- 주요 액션 버튼 (강조) -->
-            <div class="main-actions">
-                <button class="btn btn-primary btn-large" onclick="goToDiary('write')">
-                    <span class="icon">✨</span>
-                    <div class="btn-content">
-                        <span class="btn-title">새로 쓰기</span>
-                        <span class="btn-desc">오늘의 마음날씨 일기를 써보세요</span>
-                    </div>
-                </button>
-            </div>
-
-            <!-- 부가 기능 버튼 -->
+            <!-- 버튼 그룹 -->
             <div class="button-group">
+                <button class="btn btn-primary" onclick="goToDiary('write')">
+                    <span class="icon">📝</span>
+                    <span>일기 쓰기</span>
+                </button>
+
                 <button class="btn btn-secondary" onclick="goToDiary('view')">
                     <span class="icon">📚</span>
                     <span>내 일기 보기</span>
@@ -60,48 +54,6 @@
                 <button class="btn btn-info" onclick="checkStatus()">
                     <span class="icon">✅</span>
                     <span>오늘 작성 확인</span>
-                </button>
-
-                <button class="btn btn-success" onclick="quickWrite()">
-                    <span class="icon">⚡</span>
-                    <span>빠른 작성</span>
-                </button>
-            </div>
-        </div>
-
-        <!-- 최근 활동 카드 (새로 추가) -->
-        <div class="card recent-activity" id="recentActivityCard" style="display: none;">
-            <h3>📝 최근 활동</h3>
-            <div id="recentActivityContent">
-                <p class="activity-item">
-                    <span class="activity-date">오늘</span>
-                    <span class="activity-text">아직 일기를 작성하지 않았어요!</span>
-                </p>
-            </div>
-            <button class="btn btn-outline" onclick="showRecentDiaries()">
-                전체 보기
-            </button>
-        </div>
-
-        <!-- 빠른 접근 메뉴 (새로 추가) -->
-        <div class="card quick-menu">
-            <h3>🚀 빠른 접근</h3>
-            <div class="quick-menu-grid">
-                <button class="quick-btn" onclick="goToDiary('write')" title="새 일기 작성">
-                    <span class="quick-icon">📝</span>
-                    <span class="quick-text">새로쓰기</span>
-                </button>
-                <button class="quick-btn" onclick="continueWriting()" title="이어서 작성">
-                    <span class="quick-icon">📄</span>
-                    <span class="quick-text">이어쓰기</span>
-                </button>
-                <button class="quick-btn" onclick="copyLastDiary()" title="어제 일기 복사">
-                    <span class="quick-icon">📋</span>
-                    <span class="quick-text">복사하기</span>
-                </button>
-                <button class="quick-btn" onclick="voiceWrite()" title="음성으로 작성">
-                    <span class="quick-icon">🎤</span>
-                    <span class="quick-text">음성작성</span>
                 </button>
             </div>
         </div>
