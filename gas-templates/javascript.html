@@ -1,0 +1,954 @@
+<script>
+  // 전역 변수
+  let selectedEmotion = null;
+  let selectedSubEmotion = null;
+  let currentDiary = null;
+
+  // 세부 감정 매핑
+  const subEmotions = {
+    '맑음': ['기쁨', '즐거움', '신남', '행복함', '만족함'],
+    '구름조금': ['평범함', '괜찮음', '보통', '그저그럼'],
+    '흐림': ['우울함', '심심함', '지루함', '피곤함'],
+    '비': ['슬픔', '외로움', '서운함', '그리움'],
+    '번개': ['화남', '짜증남', '답답함', '억울함'],
+    '무지개': ['특별함', '감동', '뿌듯함', '설렘'],
+    '안개': ['혼란스러움', '모르겠음', '복잡함', '어려움']
+  };
+
+  // 페이지 로드 시 초기화
+  document.addEventListener('DOMContentLoaded', function() {
+    // 오늘 날짜 설정
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('diaryDate').value = today;
+
+    // 저장된 학생 정보 불러오기
+    loadStudentInfo();
+
+    // 감정 날씨 선택 이벤트 등록
+    document.querySelectorAll('.emotion-item').forEach(item => {
+      item.addEventListener('click', function() {
+        selectEmotion(this);
+      });
+    });
+
+    // 학반 입력 도움말 이벤트
+    setupClassInputHelp();
+
+    // 페이지 파라미터 처리
+    handlePageParams();
+
+    // 자동 저장 (5분마다)
+    setInterval(autoSave, 300000);
+
+    // 자동 저장 복원 확인 (새로 작성하기 모드가 아닐 때만)
+    if (!pageParams.newDiary) {
+      setTimeout(restoreAutoSave, 1000);
+    }
+  });
+
+  // 학반 입력 도움말 설정
+  function setupClassInputHelp() {
+    const classInput = document.getElementById('studentClass');
+    
+    // 포커스 시 예시 표시
+    classInput.addEventListener('focus', function() {
+      showInfoMessage('💡 학반은 여러 형태로 입력 가능해요: 3-1, 3학년 1반, 3-1-15 등');
+    });
+
+    // 입력 중 실시간 검증
+    classInput.addEventListener('input', function() {
+      const value = this.value.trim();
+      if (value) {
+        const converted = previewClassConversion(value);
+        if (converted && converted !== value) {
+          showTooltip(this, `→ ${converted}로 인식됩니다`);
+        }
+      }
+    });
+  }
+
+  // 학반 변환 미리보기 (클라이언트용)
+  function previewClassConversion(input) {
+    if (!input) return '';
+    
+    const trimmed = String(input).trim();
+    
+    // 이미 표준 형태
+    if (/^\d+-\d+$/.test(trimmed)) {
+      return trimmed;
+    }
+    
+    // 학번 형태
+    if (/^\d+-\d+-\d+$/.test(trimmed)) {
+      const parts = trimmed.split('-');
+      return `${parts[0]}-${parts[1]}`;
+    }
+    
+    // 한글 형태
+    const koreanMatch = trimmed.match(/(\d+).*?(\d+)/);
+    if (koreanMatch) {
+      return `${koreanMatch[1]}-${koreanMatch[2]}`;
+    }
+    
+    // 공백 구분
+    const spaceMatch = trimmed.match(/^(\d+)\s+(\d+)$/);
+    if (spaceMatch) {
+      return `${spaceMatch[1]}-${spaceMatch[2]}`;
+    }
+    
+    return null;
+  }
+
+  // 툴팁 표시
+  function showTooltip(element, message) {
+    // 기존 툴팁 제거
+    const existingTooltip = document.querySelector('.input-tooltip');
+    if (existingTooltip) {
+      existingTooltip.remove();
+    }
+
+    const tooltip = document.createElement('div');
+    tooltip.className = 'input-tooltip';
+    tooltip.textContent = message;
+    tooltip.style.cssText = `
+      position: absolute;
+      background: #48bb78;
+      color: white;
+      padding: 5px 10px;
+      border-radius: 5px;
+      font-size: 0.8em;
+      top: ${element.offsetTop + element.offsetHeight + 5}px;
+      left: ${element.offsetLeft}px;
+      z-index: 1000;
+      animation: fadeIn 0.3s ease;
+    `;
+
+    element.parentNode.appendChild(tooltip);
+
+    // 3초 후 제거
+    setTimeout(() => {
+      if (tooltip.parentNode) {
+        tooltip.parentNode.removeChild(tooltip);
+      }
+    }, 3000);
+  }
+
+  // 페이지 파라미터 처리
+  function handlePageParams() {
+    if (typeof pageParams !== 'undefined') {
+      if (pageParams.newDiary) {
+        clearFormOnly();
+        showSuccessMessage('새로운 일기를 시작합니다! ✨');
+      } else if (pageParams.viewMyDiaries) {
+        setTimeout(() => {
+          const name = document.getElementById('studentName').value;
+          const studentClass = document.getElementById('studentClass').value;
+          
+          if (name && studentClass) {
+            loadMyDiaries();
+          } else {
+            showInfoMessage('이름과 학반을 입력하고 "내 일기 보기"를 눌러주세요! 📚');
+          }
+        }, 1000);
+      }
+    }
+  }
+
+  // 학생 정보 불러오기
+  function loadStudentInfo() {
+    const savedName = localStorage.getItem('studentName');
+    const savedClass = localStorage.getItem('studentClass');
+
+    if (savedName) document.getElementById('studentName').value = savedName;
+    if (savedClass) document.getElementById('studentClass').value = savedClass;
+  }
+
+  // 학생 정보 저장
+  function saveStudentInfo() {
+    const name = document.getElementById('studentName').value;
+    const studentClass = document.getElementById('studentClass').value;
+
+    localStorage.setItem('studentName', name);
+    localStorage.setItem('studentClass', studentClass);
+  }
+
+  // 감정 선택
+  function selectEmotion(element) {
+    document.querySelectorAll('.emotion-item').forEach(item => {
+      item.classList.remove('selected');
+    });
+
+    element.classList.add('selected');
+    selectedEmotion = element.dataset.emotion;
+
+    // 선택 효과 애니메이션
+    element.style.transform = 'scale(1.1)';
+    setTimeout(() => {
+      element.style.transform = '';
+    }, 200);
+
+    showSubEmotions(selectedEmotion);
+  }
+
+  // 세부 감정 표시
+  function showSubEmotions(emotion) {
+    const subEmotionCard = document.getElementById('subEmotionCard');
+    const container = document.getElementById('subEmotionContainer');
+
+    container.innerHTML = '';
+    selectedSubEmotion = null;
+
+    if (subEmotions[emotion]) {
+      subEmotionCard.style.display = 'block';
+
+      subEmotions[emotion].forEach((subEmotion, index) => {
+        setTimeout(() => {
+          const item = document.createElement('div');
+          item.className = 'sub-emotion-item';
+          item.textContent = subEmotion;
+          item.style.animation = 'slideIn 0.3s ease-out';
+          item.onclick = function() {
+            selectSubEmotion(this, subEmotion);
+          };
+          container.appendChild(item);
+        }, index * 50);
+      });
+    }
+  }
+
+  // 세부 감정 선택
+  function selectSubEmotion(element, emotion) {
+    document.querySelectorAll('.sub-emotion-item').forEach(item => {
+      item.classList.remove('selected');
+    });
+
+    element.classList.add('selected');
+    selectedSubEmotion = emotion;
+  }
+
+  // 일기 저장
+  function saveDiary() {
+    if (!validateForm()) return;
+
+    showLoading();
+    saveStudentInfo();
+
+    const diaryData = {
+      name: document.getElementById('studentName').value.trim(),
+      studentClass: document.getElementById('studentClass').value.trim(),
+      date: document.getElementById('diaryDate').value,
+      emotion: selectedEmotion,
+      subEmotion: selectedSubEmotion,
+      content: document.getElementById('diaryContent').value
+    };
+
+    google.script.run
+      .withSuccessHandler(function(result) {
+        hideLoading();
+        if (result.success) {
+          showSuccessMessage(result.message);
+          currentDiary = diaryData;
+          localStorage.removeItem('autoSave');
+        } else {
+          showErrorMessage(result.message);
+        }
+      })
+      .withFailureHandler(function(error) {
+        hideLoading();
+        showErrorMessage('저장 오류: ' + error);
+      })
+      .saveDiary(diaryData);
+  }
+
+  // 선생님께 전송
+  function sendToTeacher() {
+    if (!currentDiary && !validateForm()) return;
+
+    if (!confirm('선생님께 일기를 보낼까요?')) return;
+
+    showLoading();
+
+    const diaryData = currentDiary || {
+      name: document.getElementById('studentName').value.trim(),
+      studentClass: document.getElementById('studentClass').value.trim(),
+      date: document.getElementById('diaryDate').value,
+      emotion: selectedEmotion,
+      subEmotion: selectedSubEmotion,
+      content: document.getElementById('diaryContent').value
+    };
+
+    google.script.run
+      .withSuccessHandler(function(result) {
+        hideLoading();
+        if (result.success) {
+          showSuccessMessage(result.message);
+        } else {
+          showErrorMessage(result.message);
+        }
+      })
+      .withFailureHandler(function(error) {
+        hideLoading();
+        showErrorMessage('전송 오류: ' + error);
+      })
+      .sendToTeacher(diaryData);
+  }
+
+  // 내 일기 불러오기 (개선된 버전)
+  function loadMyDiaries() {
+    const name = document.getElementById('studentName').value.trim();
+    const studentClass = document.getElementById('studentClass').value.trim();
+
+    console.log('loadMyDiaries 호출:', name, studentClass);
+
+    if (!name || !studentClass) {
+      showErrorMessage('이름과 학반을 입력해주세요!');
+      return;
+    }
+
+    // 학반 형식 미리 검증
+    const convertedClass = previewClassConversion(studentClass);
+    if (convertedClass && convertedClass !== studentClass) {
+      showInfoMessage(`학반을 "${convertedClass}"로 인식하여 검색합니다 🔍`);
+    }
+
+    showLoading();
+    saveStudentInfo();
+
+    google.script.run
+      .withSuccessHandler(function(result) {
+        console.log('서버 응답:', result);
+        hideLoading();
+        
+        if (result.success) {
+          if (result.data && result.data.length > 0) {
+            displayMyDiaries(result.data);
+            document.getElementById('myDiariesCard').style.display = 'block';
+            showSuccessMessage(`${result.data.length}개의 일기를 찾았습니다! 📚`);
+          } else {
+            document.getElementById('myDiariesCard').style.display = 'block';
+            displayMyDiaries([]);
+            showInfoMessage('아직 작성한 일기가 없어요. 첫 번째 일기를 작성해보세요! ✨');
+          }
+        } else {
+          showErrorMessage(result.message || '일기를 불러오는데 실패했습니다.');
+        }
+      })
+      .withFailureHandler(function(error) {
+        console.error('클라이언트 오류:', error);
+        hideLoading();
+        showErrorMessage('서버 연결 오류: ' + error.toString());
+      })
+      .getMyDiaries(name, studentClass);
+  }
+
+  // 일기 목록 표시 (향상된 디자인)
+  function displayMyDiaries(diaries) {
+    const container = document.getElementById('myDiariesContainer');
+    container.innerHTML = '';
+
+    if (diaries.length === 0) {
+      container.innerHTML = `
+        <div style="text-align: center; padding: 40px; color: #999;">
+          <div style="font-size: 4em; margin-bottom: 20px;">📝</div>
+          <h3>아직 작성한 일기가 없어요!</h3>
+          <p style="margin-top: 10px;">첫 번째 마음날씨 일기를 작성해보세요.</p>
+        </div>
+      `;
+      return;
+    }
+
+    const emotionEmojis = {
+      '맑음': '☀️', '구름조금': '⛅', '흐림': '☁️', '비': '🌧️',
+      '번개': '⚡', '무지개': '🌈', '안개': '🌫️'
+    };
+
+    // 헤더 추가
+    const headerDiv = document.createElement('div');
+    headerDiv.style.cssText = 'text-align: center; margin-bottom: 20px; padding: 15px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 10px; color: white;';
+    headerDiv.innerHTML = `<strong>📚 총 ${diaries.length}개의 일기</strong>`;
+    container.appendChild(headerDiv);
+
+    diaries.forEach((diary, index) => {
+      setTimeout(() => {
+        const diaryItem = document.createElement('div');
+        diaryItem.className = 'diary-item';
+        diaryItem.style.cssText = `
+          background: white;
+          border: 1px solid #e2e8f0;
+          border-radius: 15px;
+          padding: 20px;
+          margin-bottom: 15px;
+          box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+          transition: all 0.3s ease;
+          animation: slideInUp 0.5s ease-out;
+          cursor: pointer;
+        `;
+
+        const diaryDate = diary.date;
+        const formatDate = new Date(diaryDate).toLocaleDateString('ko-KR', {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+          weekday: 'short'
+        });
+
+        diaryItem.innerHTML = `
+          <div class="diary-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <span style="font-size: 2em;">${emotionEmojis[diary.emotion] || '❓'}</span>
+              <div>
+                <div style="font-weight: bold; color: #2d3748;">${formatDate}</div>
+                <div style="font-size: 0.9em; color: #666;">${diary.emotion}${diary.subEmotion ? ` - ${diary.subEmotion}` : ''}</div>
+              </div>
+            </div>
+            <div style="text-align: right;">
+              ${diary.status === '전송완료' ? 
+                '<span style="background: #48bb78; color: white; padding: 4px 12px; border-radius: 20px; font-size: 0.8em;">✓ 전송완료</span>' : 
+                '<span style="background: #ed8936; color: white; padding: 4px 12px; border-radius: 20px; font-size: 0.8em;">📝 저장됨</span>'
+              }
+            </div>
+          </div>
+          <div class="diary-content" style="
+            background: #f7fafc;
+            padding: 15px;
+            border-radius: 10px;
+            line-height: 1.6;
+            color: #2d3748;
+            white-space: pre-wrap;
+          ">${diary.content}</div>
+        `;
+
+        // 호버 효과
+        diaryItem.addEventListener('mouseenter', function() {
+          this.style.transform = 'translateY(-2px)';
+          this.style.boxShadow = '0 4px 20px rgba(0,0,0,0.15)';
+        });
+
+        diaryItem.addEventListener('mouseleave', function() {
+          this.style.transform = 'translateY(0)';
+          this.style.boxShadow = '0 2px 10px rgba(0,0,0,0.1)';
+        });
+
+        container.appendChild(diaryItem);
+      }, index * 100);
+    });
+  }
+
+  // 폼 유효성 검사 (개선)
+  function validateForm() {
+    const name = document.getElementById('studentName').value.trim();
+    const studentClass = document.getElementById('studentClass').value.trim();
+    const content = document.getElementById('diaryContent').value.trim();
+
+    if (!name || !studentClass) {
+      showErrorMessage('이름과 학반을 입력해주세요!');
+      return false;
+    }
+
+    // 학반 형식 검증
+    const convertedClass = previewClassConversion(studentClass);
+    if (!convertedClass) {
+      showErrorMessage('학반 형식을 인식할 수 없어요. 예: 3-1, 3학년 1반, 3-1-15');
+      return false;
+    }
+
+    if (!selectedEmotion) {
+      showErrorMessage('오늘의 마음 날씨를 선택해주세요!');
+      return false;
+    }
+
+    if (!content) {
+      showErrorMessage('일기 내용을 작성해주세요!');
+      return false;
+    }
+
+    return true;
+  }
+
+  // 작성 도움말 표시
+  function showWritingTips() {
+    document.getElementById('writingTipsModal').style.display = 'block';
+  }
+
+  // 작성 도움말 닫기
+  function closeWritingTips() {
+    document.getElementById('writingTipsModal').style.display = 'none';
+  }
+
+  // 자동 저장
+  function autoSave() {
+    const content = document.getElementById('diaryContent').value;
+    if (content && selectedEmotion) {
+      localStorage.setItem('autoSave', JSON.stringify({
+        emotion: selectedEmotion,
+        subEmotion: selectedSubEmotion,
+        content: content,
+        date: document.getElementById('diaryDate').value
+      }));
+    }
+  }
+
+  // 자동 저장 복원
+  function restoreAutoSave() {
+    const saved = localStorage.getItem('autoSave');
+    if (saved) {
+      const data = JSON.parse(saved);
+      if (confirm('자동 저장된 내용이 있습니다. 복원하시겠습니까?')) {
+        document.getElementById('diaryDate').value = data.date;
+        document.getElementById('diaryContent').value = data.content;
+        const emotionElement = document.querySelector(`[data-emotion="${data.emotion}"]`);
+        if (emotionElement) {
+          emotionElement.click();
+          if (data.subEmotion) {
+            setTimeout(() => {
+              const subEmotionElements = document.querySelectorAll('.sub-emotion-item');
+              subEmotionElements.forEach(item => {
+                if (item.textContent === data.subEmotion) {
+                  item.click();
+                }
+              });
+            }, 500);
+          }
+        }
+      }
+    }
+  }
+
+  // 음성 입력
+  function startVoiceInput() {
+    if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
+      showErrorMessage('음성 입력을 지원하지 않는 브라우저입니다.');
+      return;
+    }
+
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const recognition = new SpeechRecognition();
+
+    recognition.lang = 'ko-KR';
+    recognition.continuous = false;
+    recognition.interimResults = false;
+
+    recognition.onstart = function() {
+      showInfoMessage('말씀해주세요... 🎤');
+    };
+
+    recognition.onresult = function(event) {
+      const transcript = event.results[0][0].transcript;
+      const textarea = document.getElementById('diaryContent');
+      const cursorPos = textarea.selectionStart;
+      const textBefore = textarea.value.substring(0, cursorPos);
+      const textAfter = textarea.value.substring(cursorPos);
+      
+      textarea.value = textBefore + ' ' + transcript + textAfter;
+      showSuccessMessage('음성이 추가되었습니다! ✨');
+    };
+
+    recognition.onerror = function(event) {
+      showErrorMessage('음성 인식 오류: ' + event.error);
+    };
+
+    recognition.start();
+  }
+
+  // 이모지 삽입
+  function insertEmoji() {
+    const emojis = [
+      '😊', '😄', '😃', '😁', '😆', '😂', '🤣', '😍', '🥰', '😘',
+      '😢', '😭', '😤', '😠', '😡', '🤬', '😨', '😰', '😱', '😴',
+      '🤔', '🤨', '😐', '😑', '😶', '🙄', '😏', '😣', '😥', '😮',
+      '❤️', '🧡', '💛', '💚', '💙', '💜', '🖤', '🤍', '🤎', '💔',
+      '👍', '👎', '👏', '🙌', '🤗', '🤝', '🙏', '✨', '⭐', '🌟'
+    ];
+
+    const popup = document.createElement('div');
+    popup.style.cssText = `
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: white;
+      padding: 20px;
+      border-radius: 15px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+      z-index: 2000;
+      max-width: 350px;
+      max-height: 400px;
+      overflow-y: auto;
+    `;
+
+    const header = document.createElement('div');
+    header.innerHTML = '<h3 style="margin-top: 0;">😊 이모지 선택</h3>';
+    popup.appendChild(header);
+
+    const grid = document.createElement('div');
+    grid.style.cssText = 'display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px;';
+
+    emojis.forEach(emoji => {
+      const btn = document.createElement('button');
+      btn.textContent = emoji;
+      btn.style.cssText = `
+        font-size: 24px; 
+        padding: 8px; 
+        border: 1px solid #ddd; 
+        background: #f9f9f9; 
+        cursor: pointer;
+        border-radius: 8px;
+        transition: all 0.2s ease;
+      `;
+      
+      btn.onmouseover = function() {
+        this.style.background = '#e3f2fd';
+        this.style.transform = 'scale(1.1)';
+      };
+      
+      btn.onmouseout = function() {
+        this.style.background = '#f9f9f9';
+        this.style.transform = 'scale(1)';
+      };
+      
+      btn.onclick = function() {
+        const textarea = document.getElementById('diaryContent');
+        const cursorPos = textarea.selectionStart;
+        const textBefore = textarea.value.substring(0, cursorPos);
+        const textAfter = textarea.value.substring(cursorPos);
+
+        textarea.value = textBefore + emoji + textAfter;
+        textarea.focus();
+        textarea.setSelectionRange(cursorPos + emoji.length, cursorPos + emoji.length);
+
+        document.body.removeChild(popup);
+        showSuccessMessage('이모지가 추가되었습니다! ' + emoji);
+      };
+      grid.appendChild(btn);
+    });
+
+    popup.appendChild(grid);
+    document.body.appendChild(popup);
+
+    // 팝업 외부 클릭 시 닫기
+    setTimeout(() => {
+      document.addEventListener('click', function closePopup(e) {
+        if (!popup.contains(e.target)) {
+          if (popup.parentNode) {
+            document.body.removeChild(popup);
+          }
+          document.removeEventListener('click', closePopup);
+        }
+      });
+    }, 100);
+  }
+
+  // 이미지로 저장
+  function saveAsImage() {
+    if (!currentDiary && !validateForm()) return;
+
+    const diaryData = currentDiary || {
+      name: document.getElementById('studentName').value.trim(),
+      studentClass: document.getElementById('studentClass').value.trim(),
+      date: document.getElementById('diaryDate').value,
+      emotion: selectedEmotion,
+      subEmotion: selectedSubEmotion,
+      content: document.getElementById('diaryContent').value
+    };
+
+    createDiaryImage(diaryData);
+  }
+
+  // 일기 이미지 생성
+  function createDiaryImage(diaryData) {
+    const canvas = document.getElementById('diaryCanvas');
+    const ctx = canvas.getContext('2d');
+
+    canvas.width = 800;
+    canvas.height = 600;
+
+    // 배경
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // 그라데이션 헤더
+    const gradient = ctx.createLinearGradient(0, 0, canvas.width, 150);
+    gradient.addColorStop(0, '#667eea');
+    gradient.addColorStop(1, '#764ba2');
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, canvas.width, 150);
+
+    // 제목
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 36px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('🌈 마음날씨 일기', canvas.width / 2, 60);
+
+    // 날짜
+    ctx.font = '24px sans-serif';
+    ctx.fillText(diaryData.date, canvas.width / 2, 100);
+
+    // 감정 이모지
+    const emotionEmojis = {
+      '맑음': '☀️', '구름조금': '⛅', '흐림': '☁️', '비': '🌧️',
+      '번개': '⚡', '무지개': '🌈', '안개': '🌫️'
+    };
+
+    ctx.font = '80px sans-serif';
+    ctx.fillText(emotionEmojis[diaryData.emotion] || '❓', canvas.width / 2, 220);
+
+    // 감정 텍스트
+    ctx.fillStyle = '#333333';
+    ctx.font = 'bold 28px sans-serif';
+    ctx.fillText(diaryData.emotion + (diaryData.subEmotion ? ' - ' + diaryData.subEmotion : ''), canvas.width / 2, 280);
+
+    // 일기 내용 박스
+    ctx.fillStyle = '#f7fafc';
+    ctx.fillRect(50, 320, canvas.width - 100, 200);
+
+    // 일기 내용
+    ctx.fillStyle = '#2d3748';
+    ctx.font = '20px sans-serif';
+    ctx.textAlign = 'left';
+
+    const lines = wrapText(ctx, diaryData.content, canvas.width - 140);
+    let y = 360;
+    lines.forEach(line => {
+      ctx.fillText(line, 70, y);
+      y += 30;
+    });
+
+    // 서명
+    ctx.fillStyle = '#999999';
+    ctx.font = '16px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(diaryData.name + '의 마음날씨 일기', canvas.width / 2, canvas.height - 30);
+
+    // 이미지 다운로드
+    canvas.toBlob(function(blob) {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `마음날씨일기_${diaryData.date}_${diaryData.name}.png`;
+      a.click();
+      URL.revokeObjectURL(url);
+      showSuccessMessage('이미지가 다운로드되었습니다! 📸');
+    });
+  }
+
+  // 텍스트 줄바꿈 함수
+  function wrapText(ctx, text, maxWidth) {
+    const words = text.split('');
+    const lines = [];
+    let currentLine = '';
+
+    for (let i = 0; i < words.length; i++) {
+      const testLine = currentLine + words[i];
+      const metrics = ctx.measureText(testLine);
+      const testWidth = metrics.width;
+
+      if (testWidth > maxWidth && i > 0) {
+        lines.push(currentLine);
+        currentLine = words[i];
+      } else {
+        currentLine = testLine;
+      }
+    }
+
+    lines.push(currentLine);
+    return lines.slice(0, 5);
+  }
+
+  // 페이지 새로고침
+  function refreshPage() {
+    const choice = confirm('새로고침 방법을 선택하세요:\n\n확인 = 전체 페이지 새로고침\n취소 = 폼만 초기화');
+    
+    if (choice) {
+      location.reload();
+    } else {
+      clearFormOnly();
+    }
+  }
+
+  // 폼만 초기화
+  function clearFormOnly() {
+    selectedEmotion = null;
+    selectedSubEmotion = null;
+    currentDiary = null;
+    
+    document.getElementById('diaryContent').value = '';
+    document.querySelectorAll('.emotion-item').forEach(item => {
+      item.classList.remove('selected');
+    });
+    document.getElementById('subEmotionCard').style.display = 'none';
+    document.getElementById('myDiariesCard').style.display = 'none';
+    
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('diaryDate').value = today;
+    
+    localStorage.removeItem('autoSave');
+    showSuccessMessage('폼이 초기화되었습니다! ✨');
+  }
+
+  // 메시지 표시 함수들
+  function showSuccessMessage(message) {
+    showMessage(message, 'success');
+  }
+
+  function showErrorMessage(message) {
+    showMessage(message, 'error');
+  }
+
+  function showInfoMessage(message) {
+    showMessage(message, 'info');
+  }
+
+  function showMessage(message, type) {
+    const messageDiv = document.createElement('div');
+    messageDiv.style.cssText = `
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 15px 25px;
+      border-radius: 10px;
+      color: white;
+      font-weight: 600;
+      z-index: 3000;
+      animation: slideIn 0.3s ease-out;
+      max-width: 300px;
+      word-wrap: break-word;
+    `;
+
+    const colors = {
+      success: '#48bb78',
+      error: '#e53e3e',
+      info: '#4299e1'
+    };
+
+    messageDiv.style.background = colors[type] || colors.info;
+    messageDiv.textContent = message;
+
+    document.body.appendChild(messageDiv);
+
+    setTimeout(() => {
+      messageDiv.style.animation = 'slideOut 0.3s ease-out';
+      setTimeout(() => {
+        if (messageDiv.parentNode) {
+          document.body.removeChild(messageDiv);
+        }
+      }, 300);
+    }, 4000);
+  }
+
+  // 로딩 표시/숨기기
+  function showLoading() {
+    document.getElementById('loadingOverlay').style.display = 'flex';
+  }
+
+  function hideLoading() {
+    document.getElementById('loadingOverlay').style.display = 'none';
+  }
+
+  // CSS 애니메이션 추가
+  const style = document.createElement('style');
+  style.textContent = `
+    @keyframes slideIn {
+      from { transform: translateX(100%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+    
+    @keyframes slideOut {
+      from { transform: translateX(0); opacity: 1; }
+      to { transform: translateX(100%); opacity: 0; }
+    }
+
+    @keyframes slideInUp {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .modal {
+      position: fixed;
+      z-index: 2000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0,0,0,0.5);
+    }
+
+    .modal-content {
+      background-color: white;
+      margin: 5% auto;
+      padding: 0;
+      border-radius: 15px;
+      width: 90%;
+      max-width: 600px;
+      max-height: 80vh;
+      overflow-y: auto;
+    }
+
+    .modal-header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 20px;
+      border-radius: 15px 15px 0 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .modal-body {
+      padding: 20px;
+    }
+
+    .close {
+      font-size: 28px;
+      font-weight: bold;
+      cursor: pointer;
+      opacity: 0.7;
+    }
+
+    .close:hover {
+      opacity: 1;
+    }
+
+    .tip-section {
+      margin-bottom: 20px;
+    }
+
+    .tip-section h4 {
+      margin-bottom: 10px;
+      color: #2d3748;
+    }
+
+    .tip-section ul {
+      padding-left: 20px;
+    }
+
+    .tip-section li {
+      margin-bottom: 5px;
+      line-height: 1.5;
+    }
+
+    .emotion-tips {
+      display: grid;
+      gap: 8px;
+    }
+
+    .tip-item {
+      padding: 8px;
+      background: #f7fafc;
+      border-radius: 8px;
+      font-size: 0.9em;
+    }
+
+    .input-help {
+      color: #666;
+      font-size: 0.8em;
+      margin-top: 5px;
+      display: block;
+    }
+  `;
+  document.head.appendChild(style);
+</script>
